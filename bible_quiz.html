@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>창세기 골든벨 암기 카드</title>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --gold: #d4a832;
+    --gold2: #f0c842;
+    --accent: #c0392b;
+    --text: #e8dcc8;
+    --text-dim: #8b7d6b;
+    --border: #2a3140;
+    --correct: #27ae60;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(212,168,50,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(192,57,43,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 40px 0 32px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(212,168,50,0.4);
+    padding: 4px 14px;
+    border-radius: 40px;
+    margin-bottom: 16px;
+  }
+
+  header h1 {
+    font-family: 'Nanum Myeongjo', serif;
+    font-size: clamp(22px, 5vw, 36px);
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  header h1 span {
+    color: var(--gold);
+  }
+
+  header p {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    margin: 0 0 24px;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .progress-info strong {
+    color: var(--gold);
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold2));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  /* Score chips */
+  .score-chips {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .chip {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .chip-value {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .chip-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 3px;
+  }
+
+  .chip.correct .chip-value { color: var(--correct); }
+  .chip.wrong .chip-value { color: var(--accent); }
+  .chip.remain .chip-value { color: var(--gold); }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+  }
+
+  .card.revealed {
+    border-color: rgba(212,168,50,0.3);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .q-number {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--gold);
+    background: rgba(212,168,50,0.12);
+    border: 1px solid rgba(212,168,50,0.3);
+    padding: 3px 10px;
+    border-radius: 30px;
+    white-space: nowrap;
+  }
+
+  .q-progress-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+
+  .card-body {
+    padding: 28px 24px 24px;
+  }
+
+  .question-text {
+    font-family: 'Nanum Myeongjo', serif;
+    font-size: clamp(16px, 3vw, 19px);
+    line-height: 1.75;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+
+  /* Answer area */
+  .answer-area {
+    background: rgba(212,168,50,0.06);
+    border: 1px solid rgba(212,168,50,0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .answer-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 8px 16px 6px;
+    border-bottom: 1px solid rgba(212,168,50,0.15);
+    background: rgba(212,168,50,0.04);
+  }
+
+  .answer-text {
+    padding: 14px 16px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold2);
+    font-family: 'Nanum Myeongjo', serif;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .answer-hidden {
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .card.revealed .answer-text { display: block; }
+  .card.revealed .answer-hidden { display: none; }
+
+  /* Buttons */
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-reveal {
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: #1a1208;
+  }
+
+  .btn-reveal:hover { filter: brightness(1.1); }
+
+  .btn-correct {
+    background: rgba(39,174,96,0.15);
+    border: 1px solid rgba(39,174,96,0.4);
+    color: #4eca7e;
+  }
+
+  .btn-correct:hover { background: rgba(39,174,96,0.25); }
+
+  .btn-wrong {
+    background: rgba(192,57,43,0.15);
+    border: 1px solid rgba(192,57,43,0.4);
+    color: #e74c3c;
+  }
+
+  .btn-wrong:hover { background: rgba(192,57,43,0.25); }
+
+  .btn-next {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    flex: 2;
+  }
+
+  .btn-next:hover { border-color: var(--gold); color: var(--gold); }
+
+  .action-row-top {
+    margin-bottom: 10px;
+  }
+
+  /* Result screen */
+  #result-screen {
+    display: none;
+    text-align: center;
+  }
+
+  .result-title {
+    font-family: 'Nanum Myeongjo', serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .result-subtitle {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+  }
+
+  .result-score-big {
+    background: var(--surface);
+    border: 2px solid rgba(212,168,50,0.4);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+
+  .score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(var(--gold) 0%, transparent 0%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+
+  .score-circle-inner {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-pct {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold2);
+    line-height: 1;
+  }
+
+  .score-pct-label {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .result-stats {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .result-stat {
+    text-align: center;
+  }
+
+  .result-stat-val {
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  .result-stat-val.c { color: var(--correct); }
+  .result-stat-val.w { color: var(--accent); }
+
+  .result-stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .result-divider {
+    width: 1px;
+    background: var(--border);
+    align-self: stretch;
+  }
+
+  .btn-restart {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: #1a1208;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    margin: 0 8px 12px;
+    transition: all 0.2s;
+  }
+
+  .btn-restart:hover { filter: brightness(1.1); }
+
+  .btn-restart-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 32px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    margin: 0 8px 12px;
+    transition: all 0.2s;
+  }
+
+  .btn-restart-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Wrong list */
+  .wrong-list {
+    margin-top: 28px;
+    text-align: left;
+  }
+
+  .wrong-list-title {
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wrong-list-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .wrong-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .wrong-item-q {
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .wrong-item-a {
+    color: var(--gold2);
+    font-weight: 500;
+  }
+
+  /* Start screen */
+  #start-screen {
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  .start-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .start-desc {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 32px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .mode-options {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .mode-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mode-btn:hover, .mode-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(212,168,50,0.07);
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: #1a1208;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 48px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-start:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  /* Emoji */
+  .emoji { font-style: normal; }
+
+  /* Fade anim */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card { animation: fadeUp 0.3s ease; }
+
+  /* Reveal anim */
+  @keyframes revealAns {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card.revealed .answer-text { animation: revealAns 0.25s ease; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-badge">📖 성경골든벨 100문제</div>
+    <h1>창세기 <span>26~50장</span> 암기카드</h1>
+    <p>문제를 보고 스스로 생각한 뒤 답을 확인해보세요</p>
+  </header>
+
+  <!-- Start Screen -->
+  <div id="start-screen">
+    <div class="start-icon">✝️</div>
+    <p class="start-desc">
+      창세기 26~50장을 기반으로 한 골든벨 예상 100문제입니다.<br>
+      문제를 풀고 맞은 개수를 확인해 보세요.
+    </p>
+    <div class="mode-options">
+      <button class="mode-btn active" data-count="100" onclick="selectCount(this, 100)">전체 100문제</button>
+      <button class="mode-btn" data-count="50" onclick="selectCount(this, 50)">랜덤 50문제</button>
+      <button class="mode-btn" data-count="30" onclick="selectCount(this, 30)">랜덤 30문제</button>
+      <button class="mode-btn" data-count="10" onclick="selectCount(this, 10)">랜덤 10문제</button>
+    </div>
+    <button class="btn-start" onclick="startQuiz()">🔔 시작하기</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quiz-screen" style="display:none;">
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span>진행률</span>
+        <strong id="prog-text">0 / 0</strong>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="score-chips">
+      <div class="chip correct">
+        <div class="chip-value" id="score-c">0</div>
+        <div class="chip-label">✅ 맞음</div>
+      </div>
+      <div class="chip wrong">
+        <div class="chip-value" id="score-w">0</div>
+        <div class="chip-label">❌ 틀림</div>
+      </div>
+      <div class="chip remain">
+        <div class="chip-value" id="score-r">0</div>
+        <div class="chip-label">📋 남은 문제</div>
+      </div>
+    </div>
+
+    <div id="card-area"></div>
+  </div>
+
+  <!-- Result Screen -->
+  <div id="result-screen">
+    <div class="result-title">🎉 완료!</div>
+    <p class="result-subtitle">모든 문제를 풀었습니다. 결과를 확인하세요.</p>
+
+    <div class="result-score-big">
+      <div class="score-circle" id="score-circle">
+        <div class="score-circle-inner">
+          <div class="score-pct" id="res-pct">0%</div>
+          <div class="score-pct-label">정답률</div>
+        </div>
+      </div>
+      <div class="result-stats">
+        <div class="result-stat">
+          <div class="result-stat-val c" id="res-c">0</div>
+          <div class="result-stat-label">맞은 문제</div>
+        </div>
+        <div class="result-divider"></div>
+        <div class="result-stat">
+          <div class="result-stat-val w" id="res-w">0</div>
+          <div class="result-stat-label">틀린 문제</div>
+        </div>
+        <div class="result-divider"></div>
+        <div class="result-stat">
+          <div class="result-stat-val" id="res-total" style="color:var(--gold)">0</div>
+          <div class="result-stat-label">총 문제</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-restart" onclick="startQuiz()">🔄 다시 풀기</button>
+    <button class="btn-restart-outline" onclick="goHome()">🏠 처음으로</button>
+
+    <div class="wrong-list" id="wrong-list-area"></div>
+  </div>
+
+</div>
+
+<script>
+const ALL_QUESTIONS = [
+  {q:"하나님께서 이삭에게 나타나 아브라함에게 하신 약속을 다시 확인하시며 그가 머물도록 하신 땅은 어디일까요?", a:"그랄"},
+  {q:"이삭은 사람들의 위험을 피하기 위해 자신의 아내 리브가를 어떤 관계라고 속였을까요?", a:"누이"},
+  {q:"이삭이 부유해지자 사람들이 시기하여 막아버린 것은 무엇이었을까요?", a:"우물"},
+  {q:"이삭이 판 우물 중에서 처음으로 다툼이 일어나 '다툼'이라는 뜻으로 이름 붙인 우물은 에섹입니다. 이후 더 이상 다툼이 없어 하나님이 넓게 하셨다고 고백하며 지은 우물 이름은 무엇일까요?", a:"르호봇"},
+  {q:"이삭이 기근을 피해 머물렀던 블레셋 지역의 왕으로, 아브라함 때에도 등장했던 왕의 이름은 무엇일까요?", a:"아비멜렉"},
+  {q:"하나님께서 이삭에게 나타나 '두려워하지 말라'고 하시며 아브라함에게 약속하신 복을 다시 확인해 주신 장소는 어디일까요?", a:"브엘세바"},
+  {q:"에서가 결혼한 이방 여인들은 부모에게 어떤 마음을 주었을까요?", a:"근심과 마음의 고통"},
+  {q:"야곱이 아버지 이삭의 축복을 받기 위해 사용한 방법은 무엇일까요?", a:"염소 가죽과 음식으로 에서처럼 변장하여 속임"},
+  {q:"형 에서를 피해 도망가던 야곱이 광야에서 돌을 베고 잠들었을 때 꿈에서 하늘과 땅을 연결하는 것을 보았는데, 그것은 무엇이었을까요?", a:"사닥다리"},
+  {q:"야곱이 형 에서를 피해 도망가던 중 하나님을 만난 그 장소를 하나님의 집이라는 뜻으로 무엇이라 이름 지었을까요?", a:"벧엘"},
+  {q:"라헬과 레아의 아버지이자 야곱의 외삼촌의 이름은 무엇일까요?", a:"라반"},
+  {q:"야곱이 라반의 둘째딸을 얻기 위해 7년을 봉사했지만 속임을 당해 먼저 첫째딸과 결혼하게 되었고 또 7년을 봉사해서 둘째딸과 결혼하게 되었습니다. 야곱이 결국 결혼하게 된 두 자매의 이름은 무엇일까요?", a:"레아와 라헬"},
+  {q:"라헬이 낳은 첫 아들로 하나님께서 더해 주시다의 의미가 담긴 이름은 무엇일까요?", a:"요셉"},
+  {q:"야곱이 가축의 무늬를 이용하여 자신의 재산을 늘렸던 방법은 무엇일까요?", a:"점 있는 가축 번식"},
+  {q:"점점 관계가 불편해지고 하나님의 음성을 들었던 야곱이 라반의 집을 떠나기로 결심하게 된 이유는 무엇일까요?", a:"라반의 태도 변화와 재산 문제, 하나님이 고향으로 돌아가라는 명령을 주셨기 때문"},
+  {q:"라반이 야곱을 쫓아왔을 때 하나님께서 라반에게 주신 경고는 무엇일까요?", a:"야곱에게 선악간에 말하지 말라(야곱을 해하지 말라)"},
+  {q:"야곱과 라반이 서로 해치지 않기로 돌무더기를 쌓고 언약을 맺은 장소는 어디일까요?", a:"미스바"},
+  {q:"야곱이 얍복 강가에서 밤새 씨름한 대상은 누구일까요?", a:"하나님"},
+  {q:"하나님께서 야곱과 씨름하신 후, 야곱의 이름을 바꾸어 주시며 새로운 정체성을 주셨는데, 그 이름은 무엇일까요?", a:"이스라엘"},
+  {q:"야곱이 형 에서를 만나기 전 가장 먼저 취한 행동은 무엇일까요?", a:"기도함"},
+  {q:"이삭은 몇 세까지 장수하다가 죽었을까요?", a:"180세"},
+  {q:"형들은 양을 치러 간 곳에 심부름을 온 요셉을 보고 '꿈꾸는 자가 오는도다'라며 비꼬았고, 그를 죽여 구덩이에 던지기로 공모했습니다. 하지만 르우벤의 만류로 구덩이에 가뒀다가 미디안 상인들에게 얼마에 팔아넘기기로 했을까요?", a:"은 20냥"},
+  {q:"요셉의 형들이 그를 미워하여 결국 애굽으로 팔아버리게 된 가장 큰 이유는 무엇일까요?", a:"시기와 질투"},
+  {q:"요셉이 형들에게 미움을 받게 된 대표적인 이유 중 하나인, 아버지가 특별히 입혀준 옷은 무엇일까요?", a:"채색옷"},
+  {q:"요셉의 첫 번째 꿈은 밭에서 형들의 곡식단이 요셉의 단을 둘러서는 꿈이었고, 두 번째 꿈은 해와 달과 열한 별의 꿈이었는데, 이 꿈의 핵심 내용은 형들이 무엇을 하는 것이었을까요?", a:"요셉에게 절하는 것"},
+  {q:"요셉이 형들에게 팔려 간 나라는 어디일까요?", a:"애굽"},
+  {q:"형들이 요셉의 죽음을 꾸미기 위해 사용한 동물의 피는 무엇일까요?", a:"염소의 피"},
+  {q:"라헬이 죽기 직전에 '슬픔의 아들'이라는 뜻으로 붙였던 이름을 야곱이 '남쪽의 아들'이라는 다른 이름으로 바꾸어 주었는데, 그 이름은 무엇일까요?", a:"베냐민"},
+  {q:"이삭이 죽었을 때 그의 장례를 함께 치른 두 아들은 누구일까요?", a:"에서와 야곱"},
+  {q:"유다의 맏아들 엘이 죽은 이유는 무엇일까요?", a:"여호와 보시기에 악했기 때문"},
+  {q:"다말이 유다에게서 증거로 받아 둔 세 가지 물건은 무엇이었을까요?", a:"도장, 끈, 지팡이"},
+  {q:"요셉이 보디발의 집에서 형통할 수 있었던 가장 큰 이유는 무엇일까요?", a:"하나님께서 함께 하심"},
+  {q:"요셉이 애굽으로 팔려가 섬기게 된 사람은 누구일까요?", a:"보디발"},
+  {q:"보디발 아내로부터 반복적인 유혹을 받은 요셉은 하나님을 경외하는 마음으로 그 유혹을 단호히 거절합니다. 그 결과 보디발 아내의 거짓된 모함으로 인해 어떤 억울한 일을 당하게 되었을까요?", a:"누명으로 감옥에 감"},
+  {q:"중요한 직책을 맡고 있던 두 관직자가 감옥에 들어왔는데, 요셉은 이들과 함께 지내면서 그들의 꿈을 해석해주기도 했습니다. 요셉이 감옥에서 만난 두 관직자는 누구일까요?", a:"술 맡은 관원과 떡 맡은 관원"},
+  {q:"애굽의 왕 바로가 꾼 꿈을 정확하게 해석함으로써 요셉이 나라의 총리가 되는 계기가 되었는데, 그 꿈에 등장한 대표적인 동물은 무엇일까요?", a:"살찐 소와 파리한(마른) 소"},
+  {q:"이상한 꿈을 꾸고 근심하고 있던 바로에게 요셉이 해석해 준 바로의 꿈의 의미는 무엇일까요?", a:"풍년 7년 후 흉년 7년"},
+  {q:"애굽의 총리인 요셉이 곡식을 저장한 이유는 무엇일까요?", a:"흉년 대비"},
+  {q:"야곱이 형 에서를 다시 만났을 때 예상과 달리 에서가 보인 태도는 어떠했을까요?", a:"달려와 안고 울며 화해함"},
+  {q:"디나 사건에서 디나를 욕보였던 사람의 이름은 세겜입니다. 이 사건에 대해 분노하여 복수한 야곱의 아들들은 누구일까요?", a:"시므온과 레위"},
+  {q:"요셉이 형들을 시험하기 위해 가둔 형제는 시므온입니다. 그렇다면 다시 오게 하기 위해 반드시 데려오라고 한 동생은 누구일까요?", a:"베냐민"},
+  {q:"요셉은 자신의 하인에게 명하여 베냐민의 자루 속에 몰래 어떤 물건을 넣어두게 했는데, 이를 통해 형들의 마음을 시험하려고 합니다. 요셉이 베냐민의 자루에 몰래 넣은 물건은 무엇일까요?", a:"은잔"},
+  {q:"요셉의 형제들은 기근으로 인해 다시 애굽을 찾게 되었는데, 그 과정에서 위기에 처한 동생 베냐민을 지키기 위해 형인 유다가 보여준 책임 있는 행동은 무엇일까요?", a:"대신 종 되겠다고 함"},
+  {q:"요셉이 형들을 용서한 이유는 무엇일까요?", a:"하나님의 섭리"},
+  {q:"가나안 땅에 큰 기근으로 어려움을 겪던 중 애굽에 곡식이 있다는 소식과 아들 요셉이 살아 있다는 사실을 알게 된 야곱이 애굽으로 내려간 이유는 무엇일까요?", a:"요셉을 만나기 위해"},
+  {q:"야곱 가족이 애굽으로 내려간 총 인원은 몇 명일까요?", a:"70명"},
+  {q:"야곱과 그의 가족들은 요셉의 도움과 바로왕의 배려로 살기 좋은 지역에 정착하게 되었습니다. 이스라엘 자손이 애굽에서 거주한 지역은 어디일까요?", a:"고센"},
+  {q:"요셉이 다가올 기근에 대비하기 위해 애굽에서 시행한 정책으로, 백성들에게 수확의 일부를 거두어들이던 비율은 얼마였을까요?", a:"5분의 1"},
+  {q:"130년을 살아온 야곱은 바로왕 앞에서 자신의 인생을 돌아보며 짧지만 깊은 고백을 하게 됩니다. 야곱이 인생을 회고하며 한 고백은 무엇일까요?", a:"험악한 세월을 보내었다고 고백함"},
+  {q:"요셉은 하나님께서 베푸신 은혜와 인도하심을 기억하며 아들들의 이름을 짓습니다. 고난을 잊게 하신 은혜와 번성하게 하신 축복의 의미가 담겨 있는 요셉의 두 아들의 이름은 무엇일까요?", a:"므낫세, 에브라임"},
+  {q:"하나님의 약속을 믿음으로 바라보다가 생을 마감하게 된 요셉의 나이는 몇 세였을까요?", a:"110세"},
+  {q:"요셉이 남긴 유언의 핵심은 무엇일까요?", a:"자신의 해골을 가나안으로 가지고 나가 달라고 함"},
+  {q:"야곱은 애굽이 아닌 조상의 땅으로 자신을 데려가 묻어 달라고 부탁합니다. 야곱이 묻힌 장소는 어디일까요?", a:"막벨라 굴"},
+  {q:"기근이 시작되자 가나안 땅에 있던 야곱의 아들들이 애굽으로 내려간 가장 직접적인 이유는 무엇일까요?", a:"곡식을 사기 위해"},
+  {q:"요셉이 형들을 처음 만났을 때 그들을 어떤 사람으로 의심하며 시험했을까요?", a:"정탐꾼"},
+  {q:"바로가 요셉을 총리로 세우며 주었던 권위를 상징하는 물건 중 하나는 무엇일까요?", a:"인장반지"},
+  {q:"요셉이 하나님의 지혜로 바로왕의 꿈을 해석한 후 총리라는 새로운 지위와 함께 부여받은 애굽식의 새로운 이름은 무엇일까요?", a:"사브낫바네아"},
+  {q:"유다 지파는 강함과 권위를 상징하는 동물로 표현됩니다. 유다 지파를 상징하는 동물은 무엇일까요?", a:"사자"},
+  {q:"베냐민 지파를 비유한 동물은 무엇일까요?", a:"늑대"},
+  {q:"요셉에게 주어진 축복의 특징은 무엇일까요?", a:"풍성한 축복"},
+  {q:"요셉이 형들을 만날 때마다 감정을 억누르지 못하고 자주 보였던 감정 표현은 무엇일까요?", a:"울음(눈물)"},
+  {q:"이스라엘 민족이 애굽으로 내려간 사건의 의미는 무엇일까요?", a:"민족 형성"},
+  {q:"야곱이 형 에서를 만나기 전 두려움 가운데 하나님께 간절히 기도하며 고백한 내용의 핵심은 무엇일까요?", a:"자신의 연약함을 고백하고 하나님의 보호를 간구함"},
+  {q:"요셉이 겪은 고난의 궁극적인 의미는 무엇일까요?", a:"하나님의 선하신 구원 계획"},
+  {q:"창세기의 마지막을 장식한 인물은 누구일까요?", a:"요셉"},
+  {q:"창세기 전체를 관통하는 핵심 주제는 무엇일까요?", a:"하나님의 언약과 신실하심"},
+  {q:"야곱이 죽기 전 아들 유다에게 약속한 중요한 축복은 무엇일까요?", a:"왕권이 유다 지파에서 계속 이어지며 통치자의 규가 유다에게서 떠나지 않는다는 약속"},
+  {q:"야곱이 아들들을 다시 애굽으로 보낼 때, 애굽의 총리에게 드리기 위해 가지고 간 선물에는 어떤 것들이 포함되어 있었을까요?", a:"유향, 꿀, 향품"},
+  {q:"요셉이 형들에게 '당신들은 나를 해하려 했으나 하나님은 그것을 선으로 바꾸셨다'고 고백한 사건은 무엇을 보여주는 대표적인 신앙 관점일까요?", a:"하나님의 섭리"},
+  {q:"종과 감옥의 시간을 지나면서도 끝까지 맡겨진 자리에서 성실하게 책임을 감당했던 요셉의 삶 전체를 통해 드러나는 가장 핵심적인 리더십의 본질은 무엇일까요?", a:"하나님을 의지하는 지혜와 섬김"},
+  {q:"속이는 삶에서 출발했지만, 하나님을 만난 이후 점차 변화되었던 야곱의 삶 전체를 통해 나타나는 변화의 핵심 메시지는 무엇일까요?", a:"하나님과 씨름하는 믿음의 사람으로 변화됨"},
+  {q:"동생 요셉을 팔아넘기는 데 앞장섰던 모습에서 벗어나, 훗날 동생 베냐민을 대신해 자신이 희생되겠다고 나서는 유다의 변화된 모습이 갖는 영적 의미는 무엇일까요?", a:"책임과 희생의 리더로 변화됨"},
+  {q:"창세기 후반부에서 반복적으로 나타나는 하나님의 특징적인 성품은 무엇일까요?", a:"신실하심"},
+  {q:"이삭이 기근 중 그랄에 머물 때 하나님께서 애굽으로 내려가지 말라고 하시며 주신 약속은 무엇일까요?", a:"아브라함에게 주신 언약(자손, 땅, 복)을 이루시겠다는 약속"},
+  {q:"요셉의 아들 중 므낫세는 어떤 뜻일까요?", a:"고난을 잊다"},
+  {q:"요셉의 아들 중 에브라임은 어떤 뜻일까요?", a:"번성하게 하다"},
+  {q:"하나님이 브엘세바에서 이삭에게 주신 말씀은 무엇일까요?", a:"두려워하지 말라, 내가 너와 함께하여 복 주겠다"},
+  {q:"벧엘에서 야곱이 사닥다리와 천사들이 오르내리는 꿈을 꿨는데, 야곱이 꾼 꿈의 의미는 무엇일까요?", a:"하나님의 약속과 함께하심을 확신"},
+  {q:"하나님과 야곱의 씨름 후 '하나님의 얼굴을 본 곳'이라는 의미를 가진 장소는 어디일까요?", a:"브니엘"},
+  {q:"하나님과 야곱의 씨름이 끝난 후 야곱에게 주어진 '이스라엘'이라는 이름의 뜻은 무엇일까요?", a:"하나님과 겨루어 이김"},
+  {q:"야곱이 하나님과 씨름이 끝난 후 고백한 말은 무엇일까요?", a:"하나님과 대면하여 보았으나 내 생명이 보전되었다"},
+  {q:"라헬이 라반의 드라빔을 훔친 사건의 영적 의미는 무엇일까요?", a:"하나님을 믿으면서도 여전히 우상에 의존하는 이중적인 신앙 상태를 보여줌"},
+  {q:"처음 하나님을 만났던 자리인 벧엘로 다시 올라가라는 하나님의 명령은 야곱에게 무엇을 의미할까요?", a:"신앙 회복"},
+  {q:"요셉이 억울하게 감옥에 갇히는 상황 속에서도 형통할 수 있었던 이유는 무엇일까요?", a:"하나님이 함께 하시며 그의 삶을 인도하셨기 때문"},
+  {q:"'하나님이 나를 지켜주신다면'이라는 조건으로 시작된 야곱의 서원의 특징은 무엇일까요?", a:"조건적으로 거래적인 신앙"},
+  {q:"20년 만에 형을 만나러 가는 길, 야곱이 극도의 두려움 속에서 했던 세 가지 행동은 무엇일까요?", a:"기도, 선물, 전략"},
+  {q:"형 에서를 만나는 것을 앞두고 두려움에 빠진 야곱이 취한 전략적 행동은 무엇일까요?", a:"가족과 재산을 나누어 배치함"},
+  {q:"자기를 속였던 야곱에게 복수 대신 포옹을 선택한 에서의 모습에서 알 수 있는 가장 큰 메시지는 무엇일까요?", a:"용서와 화해"},
+  {q:"가장 사랑했던 존재인 라헬의 죽음이 야곱에게 주는 의미는 무엇일까요?", a:"고통 속에서도 하나님의 계획은 계속된다"},
+  {q:"요셉이 보디발 아내의 유혹을 단호히 거절하고 도망친 이유는 무엇일까요?", a:"하나님 앞에서 죄를 짓지 않기 위해"},
+  {q:"리브가가 야곱을 통해 아버지의 축복을 받도록 계획한 배경에는 하나님께서 미리 주신 어떤 말씀이 있었을까요?", a:"큰 자가 어린 자를 섬기리라"},
+  {q:"바로가 요셉을 총리로 세운 결정적인 이유는 무엇일까요?", a:"하나님의 지혜가 있었기 때문"},
+  {q:"요셉의 삶에서 반복적으로 나타나는 특징은 무엇일까요?", a:"하나님이 함께 하심"},
+  {q:"고난 속에서도 요셉이 유지한 태도는 무엇일까요?", a:"믿음과 신실함"},
+  {q:"야곱이 인생의 위기와 도망의 과정 속에서 삶의 방향과 정체성의 근본적인 변화는 무엇에서 시작되었을까요?", a:"하나님과의 만남"},
+  {q:"하나님과의 언약 속에서 형성되어 가는 야곱 가족 이야기는 훗날 한 민족으로 성장하여 구속사의 중심에 서게 될 어떤 역사의 출발점을 의미할까요?", a:"이스라엘 민족의 역사"},
+  {q:"이해할 수 없는 고난과 억울한 상황 속에서도 하나님의 계획과 뜻은 어떻게 이루어질까요?", a:"반드시 이루어진다"},
+  {q:"하나님은 연약함 가운데 저지르는 인간의 실수와 죄를 하나님의 주권과 섭리 안에서 어떻게 사용하실까요?", a:"선으로 바꾸심"},
+  {q:"다시 만난 형제들 앞에서 흘린 요셉의 눈물은 단순한 감정 표현을 넘어 그들을 향한 무엇을 의미할까요?", a:"사랑과 용서"},
+  {q:"야곱이 죽기 전에 아들들의 삶과 미래에 대해 예언적인 축복을 선언한 것은 무엇의 시작일까요?", a:"이스라엘의 열두 지파"}
+];
+
+let questions = [];
+let current = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let wrongItems = [];
+let revealed = false;
+let totalCount = 100;
+
+function selectCount(btn, count) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  totalCount = count;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  questions = shuffle(ALL_QUESTIONS).slice(0, totalCount);
+  current = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  wrongItems = [];
+  revealed = false;
+
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'block';
+
+  updateScoreChips();
+  renderCard();
+}
+
+function goHome() {
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'block';
+}
+
+function updateScoreChips() {
+  document.getElementById('score-c').textContent = correctCount;
+  document.getElementById('score-w').textContent = wrongCount;
+  document.getElementById('score-r').textContent = questions.length - current;
+
+  const pct = current / questions.length * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = `${current} / ${questions.length}`;
+}
+
+function renderCard() {
+  if (current >= questions.length) {
+    showResult();
+    return;
+  }
+
+  revealed = false;
+  const q = questions[current];
+  const area = document.getElementById('card-area');
+
+  area.innerHTML = `
+    <div class="card" id="main-card">
+      <div class="card-header">
+        <span class="q-number">Q. ${current + 1}</span>
+        <span class="q-progress-text">${questions.length - current - 1}문제 남음</span>
+      </div>
+      <div class="card-body">
+        <p class="question-text">${q.q}</p>
+        <div class="answer-area">
+          <div class="answer-label">✦ 정답</div>
+          <div class="answer-text">${q.a}</div>
+          <div class="answer-hidden">버튼을 눌러 정답을 확인하세요</div>
+        </div>
+        <div class="card-actions action-row-top">
+          <button class="btn btn-reveal" id="reveal-btn" onclick="revealAnswer()">👁 정답 보기</button>
+        </div>
+        <div class="card-actions" id="judge-btns" style="display:none;">
+          <button class="btn btn-correct" onclick="judge(true)">✅ 맞았어요</button>
+          <button class="btn btn-wrong" onclick="judge(false)">❌ 틀렸어요</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function revealAnswer() {
+  if (revealed) return;
+  revealed = true;
+  document.getElementById('main-card').classList.add('revealed');
+  document.getElementById('reveal-btn').style.display = 'none';
+  document.getElementById('judge-btns').style.display = 'flex';
+}
+
+function judge(correct) {
+  if (correct) {
+    correctCount++;
+  } else {
+    wrongCount++;
+    wrongItems.push(questions[current]);
+  }
+  current++;
+  updateScoreChips();
+  renderCard();
+}
+
+function showResult() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  const rs = document.getElementById('result-screen');
+  rs.style.display = 'block';
+
+  const total = questions.length;
+  const pct = Math.round(correctCount / total * 100);
+
+  document.getElementById('res-pct').textContent = pct + '%';
+  document.getElementById('res-c').textContent = correctCount;
+  document.getElementById('res-w').textContent = wrongCount;
+  document.getElementById('res-total').textContent = total;
+
+  // Animate circle
+  const circle = document.getElementById('score-circle');
+  circle.style.background = `conic-gradient(var(--gold) ${pct * 3.6}deg, var(--border) ${pct * 3.6}deg)`;
+
+  // Wrong list
+  const area = document.getElementById('wrong-list-area');
+  if (wrongItems.length === 0) {
+    area.innerHTML = '<p style="text-align:center;color:var(--correct);font-size:15px;margin-top:20px;">🎉 모두 맞혔습니다!</p>';
+  } else {
+    let html = `<div class="wrong-list-title">틀린 문제 ${wrongItems.length}개</div>`;
+    wrongItems.forEach((item, i) => {
+      html += `
+        <div class="wrong-item">
+          <div class="wrong-item-q">${i+1}. ${item.q}</div>
+          <div class="wrong-item-a">→ ${item.a}</div>
+        </div>
+      `;
+    });
+    area.innerHTML = html;
+  }
+}
+</script>
+</body>
+</html>
